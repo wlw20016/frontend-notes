@@ -1,0 +1,35 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+      # 如果你的主分支叫 master，请改成 - master
+
+jobs:
+  build-and-deploy:
+    name: Build and Deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout源码
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # 获取所有提交历史，这对 Docusaurus 生成文档最后更新时间很有用
+
+      - name: 安装 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20 # 使用比较新的 Node 版本
+          cache: npm # 开启缓存，加快后续打包速度
+
+      - name: 安装依赖
+        run: npm ci # 比 npm install 更稳定，专门用于自动化环境
+
+      - name: 编译打包
+        run: npm run build # 这会生成静态文件到 build 目录
+
+      - name: 部署到 GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./build # 告诉 GitHub 把 build 文件夹里的内容发出去
