@@ -1,0 +1,1 @@
+"use strict";(globalThis.webpackChunkfrontend_notes=globalThis.webpackChunkfrontend_notes||[]).push([[1903],{1912(o){o.exports=JSON.parse('{"blogBasePath":"/frontend-notes/blog","blogTitle":"Blog","authorsListPath":"/frontend-notes/blog/authors"}')}}]);
