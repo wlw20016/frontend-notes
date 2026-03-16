@@ -222,13 +222,74 @@ class Promise {
     }
 
     //finally()方法 相当于调用p.then(onFinally, onFinally)无论Promise状态是fulfilled还是rejected，finally()方法都会被调用
-    finally(callback){
+    finally(onFinally){
         return this.then(onFinally, onFinally)
     }
+
+    //静态方法 resolve
+    static resolve(value){
+        //如果value是Promise对象，直接返回value
+        if(value instanceof Promise){
+            return value
+        }
+        //如果value不是Promise对象，返回一个新的Promise对象，状态为fulfilled，结果为value
+        return new Promise((resolve, reject) => {
+            resolve(value)
+        })
+    }
+    
+    //静态方法 reject
+    static reject(err){
+        //返回一个新的Promise对象，状态为rejected，结果为err
+        return new Promise((resolve, reject) => {
+            reject(err)
+        })
+    }
+
+    //静态方法 race
+    static race(promises){
+        if( !Array.isArray(promises)){
+            throw new TypeError('Promise.race expects an array')
+        }
+        promises.forEach(p => {
+            Promise.resolve(p).then(res => resolve(res), err => reject(err))
+        })
+    }
+
+    //静态方法 all
+    static all(promises){
+        return new Promise((resolve, reject) => {
+            //判断是否为数组
+            if( !Array.isArray(promises)){
+                throw new TypeError('Promise.all expects an array')
+            }
+            //判断是否为空数组
+            promises.length === 0 && resolve([])
+            //
+            const results = []
+            let count = 0
+            promises.forEach((p, index)=>{
+                Promise.resolve(p).then(
+                    res => {
+                        results[index] = res
+                        count++
+                        count === promises.length && resolve(results)
+                    },
+                    err => {
+                        reject(err) 
+                    }
+                )
+
+            })
+            
+        })
+    }
+
+
 }
 ```
 
-### Promise 链式调用
+## Promise 链式调用
 在 Promise 的链式调用中，错误传递机制有一个非常形象的绰号，叫做**“错误冒泡”（Error Bubbling）**或者叫**“击鼓传花”**。
 
 它的核心表现是：**如果在链条的某个环节发生了错误（无论是 `reject()` 还是代码抛出了异常 `throw Error`），这个错误会顺着链条一直往下掉，直到遇到第一个愿意处理它的 `catch`（或者带有第二个参数的 `then`）为止。**
@@ -306,8 +367,3 @@ class MyPromise {
 
 根据我们上一条讲的“法则二”（返回普通值会让下一个 Promise 变成成功状态），**紧跟在 `catch` 后面的 `then` 会被当做成功来执行！** 这叫作从错误中恢复。
 
----
-
-现在你已经掌握了 Promise 链式调用里最难搞懂的“状态转移”和“错误穿透”。其实，原生的 `Promise.prototype.catch` 方法在底层只是 `then` 的一个语法糖。
-
-你需要我用一行代码向你演示，在手写 Promise 时如何极简地实现 `catch` 方法吗？
