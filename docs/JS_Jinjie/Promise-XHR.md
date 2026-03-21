@@ -18,7 +18,7 @@ xhr.onloadend = function () {
   if (xhr.status === 200) {
     console.log(JSON.parse(xhr.response)); // xhr.response是json字符串
   } else {
-    console.error('请求失败，状态码：' + xhr.status);
+      console.error('请求失败，状态码：' + xhr.status);
   }
 };
 
@@ -114,7 +114,7 @@ class Promise {
                 this.state = FULFILLED
                 this.result = value
                 // 异步情况下调用所有fulfilled回调函数
-                this.#handlers.forEach({onFulfilled} => onFulfilled(this.result))
+                this.#handlers.forEach(({onFulfilled}) => onFulfilled(this.result))
             }
             
         }
@@ -123,7 +123,7 @@ class Promise {
                 this.state = REJECTED
                 this.result = reason
                 // 异步情况下调用所有rejected回调函数
-                this.#handlers.forEach({onRejected} => onRejected(this.result))
+                this.#handlers.forEach(({onRejected}) => onRejected(this.result))
             }
         }
 

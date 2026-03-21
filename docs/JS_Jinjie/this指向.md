@@ -59,7 +59,7 @@ test.apply({a:10}) // {a:10}
 ```
 apply()函数的实现
 ```js
-Function.prototype.myApply = function(context, args) {
+Function.prototype.myApply = function(context, args) {  //接收参数时，接收的是数组
   // 1. 基础校验：确保调用 myCall 的是一个函数
   if (typeof this !== 'function') {
     throw new TypeError('Error: myCall 必须被一个函数调用');
@@ -76,7 +76,12 @@ Function.prototype.myApply = function(context, args) {
   context[fnSymbol] = this;
   // 5. 执行这个临时方法，此时函数内部的 this 已经隐式绑定到了 context 上！
   // 传入剩余的参数，并保存执行结果
-  const result = context[fnSymbol](args); //这里，是context在调用函数，所以this指向了context
+  let result
+  if(args){
+    result = context[fnSymbol](...args) //调用传参时，是将参数数组展开，再传递给函数
+  }else{                                //这里，是context在调用函数，所以this指向了context
+    result = context[fnSymbol]()
+  } 
   // 6. 过河拆桥：执行完毕后，删除这个临时属性，保持传入对象的纯洁
   delete context[fnSymbol];
   // 7. 返回函数执行的结果
@@ -103,6 +108,7 @@ Function.prototype.myBind = function(context, args) {
   return function (newArgs){
     fn.apply(context, args.concat(newArgs))
   }
+}
 ```
 ### 连续多次调用bind函数
 
@@ -119,7 +125,7 @@ const obj3 = { name: 'Charlie' };
 // 第一次 bind
 const bound1 = greet.bind(obj1);  
 // bound1 = function (newArgs){
-//   return greet.apply(obj1, args.concat(newArgs))  
+//    greet.apply(obj1, args.concat(newArgs))  
 //   （这里执行以后，greet的this指向了obj1）
 // }
 bound1(); // 输出: Alice
@@ -127,7 +133,7 @@ bound1(); // 输出: Alice
 // 第二次 bind (试图把 this 改成 obj2)
 const bound2 = bound1.bind(obj2); 
 // bound2 = function (newArgs){
-//   return bound1.apply(obj2, args.concat(newArgs))
+//    bound1.apply(obj2, args.concat(newArgs))
 //   （这里执行以后，bound1的this指向了obj2，但并不会在bound1执行的时候，影响greet.apply(obj1, args.concat(newArgs))的执行，即，在apply内部，通过obj2执行的bound1函数返回的是greet.apply(obj1)的结果，greet的this并没有被改变）
 // }
 bound2(); // 输出: Alice (依然是 Alice！改不掉了)
